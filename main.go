@@ -1,25 +1,64 @@
 package main
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/tarm/serial"
 )
 
 func main() {
-	c := &serial.Config{Name: "COM45", Baud: 115200} //设置串口名称 波特率等配置信息
-	s, err := serial.OpenPort(c)                     //打开串口操作
-	if err != nil {                                  //判断打开是否失败
-		log.Fatal(err) //打印失败信息
+	conn := new(SerialConnection)
+	err := conn.ConnectToSerial("COM2", 115200)
+	if err == nil {
+		conn.Send("xiaoxi!!!") //发送 xiaoxi!!!
+		conn.ReadSerial()      //读取消息
 	}
-	n, err := s.Write([]byte("test")) // 发送 内容 test
-	if err != nil {
-		log.Fatal(err, n) //打印发送成功或者失败信息
+}
+
+func (sc *SerialConnection) Send(test string) (int, error) {
+	n, err := sc.S.Write([]byte(test)) // 发送 内容 test
+	return n, err
+}
+
+//连接串口
+func (sc *SerialConnection) ConnectToSerial(name string, baud int) error {
+	c := &serial.Config{Name: name, Baud: baud} //设置串口名称 波特率等配置信息
+	ch := make(chan []byte, 128)
+	c2 := make(chan struct{}, 10)
+	sc.Ch = &ch
+	//打开串口
+	s, err := serial.OpenPort(c) //打开串口操作
+	if err != nil {              //判断打开是否失败
+		return err
 	}
-	buf := make([]byte, 128) //定义一个空字节用于接收消息
-	n, err = s.Read(buf)     //读取串口发送的内容
-	if err != nil {          //判断读取是否失败了
-		log.Fatal(err, n) //打印失败的信息
+	sc.S = s
+	sc.StopCh = &c2
+	return nil
+}
+
+type SerialConnection struct {
+	S      *serial.Port
+	Ch     *chan []byte
+	StopCh *chan struct{}
+}
+
+const (
+	MAXRWLEN = 128
+)
+
+func (sc *SerialConnection) ReadSerial() {
+	var num int
+	for {
+		select {
+		case <-(*sc.StopCh):
+			return
+		default:
+			buffer := make([]byte, MAXRWLEN)
+			num, _ = (*sc.S).Read(buffer)
+			if num > 0 {
+				(*sc.Ch) <- buffer
+				fmt.Println(string(buffer))
+			}
+		}
 	}
-	log.Printf("%q", buf[:n]) //打印读取到的内容
 }
