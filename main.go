@@ -16,7 +16,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err, n) //打印发送成功或者失败信息
 	}
-	buf := make([]byte, 128) //定义一个128长度的空字节用于接收消息
+	buf := make([]byte, 128) //定义一个空字节用于接收消息
 	n, err = s.Read(buf)     //读取串口发送的内容
 	if err != nil {          //判断读取是否失败了
 		log.Fatal(err, n) //打印失败的信息
