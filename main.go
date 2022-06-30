@@ -9,15 +9,23 @@ import (
 func main() {
 	var com string //"COM2"
 	var baud int   //115200
+	var msg string
 	fmt.Println("请输入端口号 波特率 使用空格隔开!")
-	fmt.Scanf("%s %d", &com, &baud)
+	fmt.Scan(&com, &baud)
 	conn := new(SerialConnection)
 	err := conn.ConnectToSerial(com, baud)
 	if err == nil {
-		fmt.Printf("连接端口%v成功!", com)
-		conn.Send("xiaoxi!!!") //发送 xiaoxi!!!
-		conn.ReadSerial()      //读取消息
+		fmt.Println("========连接端口成功========")
+		for {
+			go conn.ReadSerial() //读取消息
+			fmt.Println("========输入要发送的内容 回车确定=========")
+			fmt.Scan(&msg)
+			conn.Send(msg) //发送 xiaoxi!!!
+			fmt.Println("======发送成功========")
+		}
+
 	}
+
 }
 
 func (sc *SerialConnection) Send(test string) (int, error) {
@@ -62,7 +70,7 @@ func (sc *SerialConnection) ReadSerial() {
 			num, _ = (*sc.S).Read(buffer)
 			if num > 0 {
 				(*sc.Ch) <- buffer
-				fmt.Println(string(buffer))
+				fmt.Println("读取消息:", string(buffer))
 			}
 		}
 	}
