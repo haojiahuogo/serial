@@ -16,8 +16,8 @@ func main() {
 	err := conn.ConnectToSerial(com, baud)
 	if err == nil {
 		fmt.Println("========连接端口成功========")
+		go conn.ReadSerial() //读取消息
 		for {
-			go conn.ReadSerial() //读取消息
 			fmt.Println("========输入要发送的内容 回车确定=========")
 			fmt.Scan(&msg)
 			conn.Send(msg) //发送 xiaoxi!!!
