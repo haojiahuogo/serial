@@ -7,9 +7,14 @@ import (
 )
 
 func main() {
+	var com string //"COM2"
+	var baud int   //115200
+	fmt.Println("请输入端口号 波特率 使用空格隔开!")
+	fmt.Scanf("%s %d", &com, &baud)
 	conn := new(SerialConnection)
-	err := conn.ConnectToSerial("COM2", 115200)
+	err := conn.ConnectToSerial(com, baud)
 	if err == nil {
+		fmt.Printf("连接端口%v成功!", com)
 		conn.Send("xiaoxi!!!") //发送 xiaoxi!!!
 		conn.ReadSerial()      //读取消息
 	}
